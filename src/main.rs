@@ -15,6 +15,8 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
+static HELLO: &[u8] = b"Hello World!";
+
 // This annotation instructs the compiler to not mangle
 // the name of the function so that we can insure that
 // `_start` will be available to the linker.
@@ -22,5 +24,14 @@ fn panic(_info: &PanicInfo) -> ! {
 // This function is called by the Rust runtime
 // instead of `main`.
 pub extern "C" fn _start() -> ! {
+    let vga_buffer = 0xb8000 as *mut u8;
+
+    for (i, &byte) in HELLO.iter().enumerate() {
+        unsafe {
+            *vga_buffer.offset(i as isize * 2) = byte;
+            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
+        }
+    }
+
     loop {}
 }
